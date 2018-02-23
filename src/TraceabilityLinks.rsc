@@ -12,6 +12,9 @@ import util::Math;
 
 set[str] wordsInFile(loc file) 
   	= { word | /<word:[a-zA-Z]+>/ := readFile(file)};
+  	
+set[str] numInFile(loc file) 
+  	= { word | /<word:[0-9]+>/ := readFile(file)};
   		
 set[str] parsingAndTokenizing(set[str] x) {	
 	return mapper(x, toLowerCase);
@@ -115,12 +118,37 @@ rel[str high, str low, num sim] createSimilarityMatrix
 	return similarityMatrix;
 }
 
+void createLinks(rel[str high, str low, num sim] matrix, value mode) {
+	if(mode == 2) {
+		println(mode);
+	}
+	else if(mode == 3) {
+		for(m <- matrix) {
+			if(m.sim < 0.25) {
+				matrix -= m;
+			}
+		}
+	}
+	else if(mode == 4) {
+		println(mode);
+	}
+	else {
+		println(mode);
+	}
+}
+
 
 
 void main() {
 	high = |project://traceability-links/data/high|.ls; 
 	low = |project://traceability-links/data/low|.ls;
-	
+	modeFile = |project://traceability-links/data/extra/input.csv|;
+	mode = numInFile(modeFile);
+	for(m <- mode) {
+		mode = toInt(m);
+	}
+	println(mode);
+
 	list[str] master = [];
 	
 	rel[str req, list[num] vec] highReqs = {};
@@ -147,7 +175,12 @@ void main() {
 	lowReqs = normalizeVectorRelation(lowReqs, frequencyMaster, numReqs);
 
 	similarityMatrix = createSimilarityMatrix(highReqs, lowReqs);
-	println(similarityMatrix);
-
+	
+	createLinks(similarityMatrix, mode);
+	for(m <- similarityMatrix) {
+		println(m);
+	}
+	
+	
 	
 }
