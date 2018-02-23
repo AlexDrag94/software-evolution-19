@@ -118,23 +118,41 @@ rel[str high, str low, num sim] createSimilarityMatrix
 	return similarityMatrix;
 }
 
-void createLinks(rel[str high, str low, num sim] matrix, value mode) {
-	if(mode == 2) {
+rel[str high, str low, num sim] createLinks
+(rel[str high, str low, num sim] matrix, list[loc] high, list[loc] low, int mode) {
+	rel[str high, str low, num sim] newMatrix = {};
+	if (mode == 1) {
+		newMatrix = matrix;
+	}
+	else if(mode == 2) {
 		println(mode);
 	}
 	else if(mode == 3) {
 		for(m <- matrix) {
-			if(m.sim < 0.25) {
-				matrix -= m;
+			if(m.sim >= 0.25) {
+				newMatrix += m;
 			}
 		}
 	}
 	else if(mode == 4) {
-		println(mode);
+		for(x <- high) {
+			for(y <- low) {
+				if(sum(matrix[x.file, y.file]) >= 0.67 * max(matrix[x.file, _])) {
+					newMatrix += <x.file, y.file, sum(matrix[x.file, y.file])>;
+				}
+			}
+		}
 	}
 	else {
-		println(mode);
+		for(x <- high) {
+			for(y <- low) {
+				if(sum(matrix[x.file, y.file]) >= 0.5 * max(matrix[x.file, _])) {
+					newMatrix += <x.file, y.file, sum(matrix[x.file, y.file])>;
+				}
+			}
+		}
 	}
+	return newMatrix;
 }
 
 
@@ -143,8 +161,9 @@ void main() {
 	high = |project://traceability-links/data/high|.ls; 
 	low = |project://traceability-links/data/low|.ls;
 	modeFile = |project://traceability-links/data/extra/input.csv|;
-	mode = numInFile(modeFile);
-	for(m <- mode) {
+	modeSet = numInFile(modeFile);
+	int mode = 1;
+	for(m <- modeSet) {
 		mode = toInt(m);
 	}
 	println(mode);
@@ -176,11 +195,13 @@ void main() {
 
 	similarityMatrix = createSimilarityMatrix(highReqs, lowReqs);
 	
-	createLinks(similarityMatrix, mode);
-	for(m <- similarityMatrix) {
-		println(m);
-	}
+	similarityMatrix = createLinks(similarityMatrix, high, low, mode);
 	
-	
-	
+	for(h <- high) {
+		println(h.file);
+		for(l <- similarityMatrix[h.file]) {
+			println(l);
+		}
+		println();
+	}	
 }
